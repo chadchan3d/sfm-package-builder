@@ -1,0 +1,36 @@
+# Build output
+bin/
+obj/
+**/bin/
+**/obj/
+**/TestResults/
+**/work/
+
+# Local scratch and generated artifacts
+work/
+outputs/**
+!outputs/
+!outputs/release-assets/
+!outputs/release-assets/**
+
+# Release archives and extracted distributions
+*.zip
+*.sha256.txt
+
+# User, IDE, and OS state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+Desktop.ini
+Thumbs.db
+
+# Local project files and logs
+*.sfmpack
+*.log
+*.tmp
+*.bak
+*_oldbackup.txt
