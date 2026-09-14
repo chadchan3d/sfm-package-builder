@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>SfmPackageBuilder.WinForms.Tests</AssemblyName>
+    <RootNamespace>SfmPackageBuilder.WinForms.Tests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SfmPackageBuilder.Core\SfmPackageBuilder.Core.csproj" />
+    <ProjectReference Include="..\..\src\SfmPackageBuilder.WinForms\SfmPackageBuilder.WinForms.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.10.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.10.2" />
+  </ItemGroup>
+</Project>

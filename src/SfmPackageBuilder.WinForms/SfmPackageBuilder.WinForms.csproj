@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>SfmPackageBuilder</AssemblyName>
+    <RootNamespace>SfmPackageBuilder.WinForms</RootNamespace>
+    <AssemblyTitle>Build ZIP packages for Source Filmmaker model releases.</AssemblyTitle>
+    <Product>SFM Package Builder</Product>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <Description>Build ZIP packages for Source Filmmaker model releases.</Description>
+    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <FileVersion>1.0.4.0</FileVersion>
+    <InformationalVersion>1.0.4</InformationalVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SfmPackageBuilder.Core\SfmPackageBuilder.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\app-icon.ico" LogicalName="SfmPackageBuilder.WinForms.Assets.app-icon.ico" />
+    <EmbeddedResource Include="Assets\packagebuilderlogo_cropped.png" LogicalName="SfmPackageBuilder.WinForms.Assets.packagebuilderlogo_cropped.png" />
+    <EmbeddedResource Include="Assets\packagebuilder_justlogo.png" LogicalName="SfmPackageBuilder.WinForms.Assets.packagebuilder_justlogo.png" />
+    <EmbeddedResource Include="Assets\packagebuilderjusttitle.png" LogicalName="SfmPackageBuilder.WinForms.Assets.packagebuilderjusttitle.png" />
+    <EmbeddedResource Include="Assets\successbox.jpg" LogicalName="SfmPackageBuilder.WinForms.Assets.successbox.jpg" />
+  </ItemGroup>
+</Project>
