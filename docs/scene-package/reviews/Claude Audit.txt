@@ -1,0 +1,148 @@
+I checked the blueprint against both uploaded source trees and against the current NuGet pages for the proposed packages. I did not build anything or run SFM.
+
+Both archive hashes match the blueprint's audited-input table, and the SFM Package Builder (PB) archive has 257 entries, so we reviewed the same baseline. Most of the PB citations are accurate, including the .NET 10 targets, the absence of third-party NuGet references in the application projects, the v49-only MDL reader, size-only checking for ordinary staged files, the synchronous check at the start of `BuildAsync`, and the line references into `MainForm`.
+
+The core design is sound and worth keeping:
+- the final plan is the single source of truth;
+- one central resolver decides content precedence;
+- the DMX is never rewritten;
+- traversal continues through stock content even when it is excluded;
+- the output is checked against a simulated recipient overlay.
+
+The problems are in four places: persistence choices that hurt Model Package compatibility, a few unverified SFM assumptions that could make the strict gates block nearly every real scene, recipient-side failure modes, and infrastructure built before it is needed. Findings are numbered so Astra can answer them individually.
+
+## Factual errors and misread current behavior
+
+**F1. Moving settings to version 2 can wipe users' settings (§6.4).** The blueprint relies on a "future-settings passive-load non-overwrite guarantee," but that guarantee only covers loading.
+- When `SettingsService.Load` sees a future schema, it returns defaults.
+- The `MainForm` constructor uses those defaults without checking the load status.
+- The next time a project is opened, `TrackRecent` → `RecentProjectsService.AddOrPromote` → `settingsService.Save` writes a version-1 file over the version-2 one.
+- So a user who opens v1.0.4 once after the new version loses all their settings, recents and creator defaults.
+
+Meanwhile, the settings serializer options in `SettingsService.CreateOptions` do not set `UnmappedMemberHandling.Disallow`. That means new optional fields added under version 1 are simply ignored by the old app, which would only drop those new fields when it saves. Recommendation: keep settings at version 1 and add the fields as optional.
+
+**F2. Saving Model recipes in the version-5 envelope breaks compatibility for no gain (§6.1).** `ProjectMigrationService.MigrateToCurrent` reads `schemaVersion` from the root of the file. A scene file using a version-5 envelope will therefore already be rejected by v1.0.4 as a future schema, which is the desired outcome.
+
+Model documents do not need the envelope. They can keep being written as flat version 4, with document kind decided by `schemaVersion` / `packageKind`. That is explicit dispatch on declared version fields, not guessing from which fields are populated. It keeps every Model recipe openable by v1.0.4, removes the need for the "Save As" guidance, and takes the Model serializer out of Stage 1's regression surface.
+
+**F3. The stored package-kind hint in recents is redundant, but the real recents risk is missing (§6.4).** `ReadRecentProjectCardMetadata` (around `MainForm.cs:4364`) already fully loads every recent project file through `projectSerializer.Load`, synchronously on the UI thread, every time the recents list refreshes. The kind is therefore always available from the file itself.
+
+What is missing: the card loader must switch to the dispatching serializer, and loading a scene file must stay as cheap as loading a model file. That means no analysis and no source probing beyond what `ResolveAfterLoad` already does.
+
+**F4. The blueprint overlooks the author's grant of permission (§3).** `original/DmxPackageLib_Methods.txt` contains the original author's grant to use the DLL for anything, asking only for credit. This informal permission may not clearly extend to reconstructed source, and code is not being ported anyway. The record should still be corrected, and an acknowledgement in About/notices costs nothing.
+
+**F5. The recovered tool is better evidence than §3 treats it as.**
+- **Header shape.** `ReadDMX` seeks to a hard-coded offset of 54, which I confirmed in the IL (`ldc.i4.s 54`, METHOD 25). The text `<!-- dmx encoding binary N format sfm_session NN -->`, plus a newline and a NUL, is exactly 54 bytes when N is one digit and NN is two digits. That is direct evidence of the header shape in the sessions the author tested. A file-type reference page lists the same binary 5 format sfm_session header prefix.
+- **Absolute model paths.** The tool keeps `.mdl` strings only if they contain the absolute install path, then removes that prefix with `MakeRelative`. That suggests those sessions stored absolute model paths in the DMX string dictionary.
+- **Path forms.** `ResolveMap` prepends `maps\` and `ResolveSound` prepends `sound\`. That implies maps are stored as bare `.bsp` names and sounds as paths relative to `sound/`.
+
+These should be written up as the starting hypotheses for gate D1. Two small precision corrections:
+- `ResolveModel` scans only the model's own directory; it does not recurse.
+- `ParseGameInfo` matches only a first token of exactly `Game`, so it silently ignored every search path declared with combined path IDs such as `game+mod`.
+
+**F6. Dependency adoption collides with `TreatWarningsAsErrors`.** `Directory.Build.props` turns on `TreatWarningsAsErrors` for every project, including the test projects.
+- **NuGet audit.** `BUILD.md` restores with `-p:NuGetAudit=false`, but the §11 commands leave that out. Once packages are added, a newly published security advisory can turn a previously reproducible release build into a failed one.
+- **Source generator.** KeyValues2 1.0.0's source generator emits an ElementFactory into every assembly that references the package, and the package is net9.0. Its diagnostics also become errors.
+
+The audit policy and the generator's asset flow (`PrivateAssets`) need an explicit decision in Stage 0. One more note: a 2.0.0-rc2 prerelease targeting net10.0 already exists, which signals an upcoming API break against a 1.0.0 pin.
+
+## Unverified SFM assumptions that decide whether real scenes can build
+
+**F7. Absolute paths decide whether the feature is viable at all.** §1.2 blocks "runtime absolute paths that are not proven portable." If real sessions routinely carry absolute model strings, as F5 suggests, then every real scene is blocked until the breadcrumb-or-lookup question is answered. This should be the first Stage 0 question, not one gate among many.
+
+**F8. Gate D1 is too weak, and the completeness rule is too broad.**
+- **Corpus, not a minimal session.** A "minimal genuine session" cannot enumerate the attribute slots that the "unknown structure → unsupported" rule will trip on. Real sessions carry rigs, constraints, control groups, presets, UI state, and attributes added by user scripts.
+- **Inventory first.** Stage 0 needs an inventory of element type → attribute → value type → sample values, built across a corpus of real sessions from different SFM versions and workflows. That inventory both produces the rules table and measures how often the strict gate would block.
+- **Tighten the rule by value type.** Numeric, vector, matrix, time, color and bool attributes cannot name files, so they can be classified non-runtime by type alone. Unknown string attributes on element types SFM's engine does not implement with loading behavior can go to the path-looking-string detector as warnings rather than blockers. Untyped loading supports this: elements with no matching class load as plain Elements and unclaimed attributes are kept.
+
+This is a tightening of Astra's rule, not a replacement.
+
+**F9. Unused content can block scenes that render fine.** Conservatively including bins and disabled tracks (§1.1) combines badly with treating missing assets as a blocking Error (§7.3). A model the user later deleted, still sitting in a forgotten clip bin, blocks a scene that renders perfectly. Add a severity tier: anything missing or unsupported that is reachable only through non-timeline content becomes an explicit decision and is disclosed in the report.
+
+**F10. Particles may be both over-blocked and mis-targeted (§1.2, §8.6).** As far as I know, SFM copies the particle system definition into the session when an effect is placed. If Stage 0 confirms this, the real external dependencies are the particle materials (and any models referenced by operators), not a `.pcf` file. The blanket rule that particle references block would then block the wrong thing. Particles are very common in SFM scenes, so this decides how much of the real-world corpus the first release can handle.
+
+**F11. Named sound events may not need registration machinery.** My understanding is that SFM game-sound clips store the concrete wave path alongside the event name. The recovered tool also resolved only `.wav`/`.mp3` paths under `sound/`.
+
+If Stage 0 confirms that playback uses the stored wave path, then the event name is non-runtime. In that case the registration machinery in §8.5, test Q11, and that part of Stage 6 can all be cut. Test this before building any of it.
+
+**F12. VCD and video may have no session slot at all.** Confirm that a VCD or video reference actually exists in sessions before treating it as a blocking dependency class. I believe SFM bakes imported VCDs into animation. If so, a `.vcd` string is provenance, and blocking on it would be a false positive.
+
+**F13. The VMT parser is stricter than Source.**
+- **Strictness.** ValveKeyValue throws KeyValueException on malformed input, while Source's own KeyValues parser is tolerant, and malformed community VMTs that load fine in SFM are common. Under §7.3, a parse failure is a blocking Error, so these would produce false blocks. Qualification needs fixtures of malformed VMTs that SFM accepts, plus a defined leniency policy.
+- **Host-dependent conditions.** The library's default conditions depend on the host OS (WINDOWS versus LINUX/POSIX or OSX/POSIX). Pin them to the SFM profile so tests on a non-Windows machine evaluate conditionals the same way.
+- **Churn.** 0.71.0.528 was published 9/23/2026, about a week before the blueprint, with roughly a dozen 0.x releases since March. Put it behind a narrow internal adapter, as the blueprint already does for DMX.
+
+**F14. Unknown shader parameters need a safe fallback.** A registry-only approach either blocks on parameters it does not know or misses their textures. A conservative fallback is safe for packaging: for an unknown string-valued parameter, include the file if it resolves to an existing VTF or VMT, and record it as a probable edge. Including an extra real file is harmless.
+
+**F15. The isolated collaboration folder assumption is unverified (§1.3).** This needs a Stage 0 check that SFM's search-path tooling can place a folder above `|gameinfo_path|.` (that is, above usermod). If it cannot, the isolated folder silently loses to whatever the recipient has in usermod. Verify it or drop the option.
+
+**F16. The stock catalog is the most expensive deliverable, and no stage builds it.**
+- **Why it matters.** Without a catalog, every stock asset becomes a pending decision. That makes the first release unusable for the most common scene type: stock characters plus custom content.
+- **Lighter first-release rule.** Identify stock content at the VPK-file level, using a small measured list of SFM-shipped VPKs. Verify them with their own checksums; ValvePak 5.0.2.177 targets .NET 10 and exposes VerifyFileChecksums. Group them as one "SFM base install" prerequisite.
+- **Loose files.** Loose files inside stock folders count as custom.
+- **Mounted external games.** Group content from mounted external games per provider root.
+- **Measure MDL versions.** Stage 0 should also measure the MDL versions in the stock corpus. The current reader accepts v49 only, and traversing stock models is on the critical path.
+
+## Ways a valid ZIP can still fail to reproduce the scene
+
+**F17. Collisions on the recipient side.** Installing into usermod overwrites the recipient's files at the same virtual paths. Community models often share paths, so this can silently change the recipient's other scenes or swap in the wrong asset.
+- **What the simulation can't see.** The sender-side overlay simulation cannot see the recipient's content.
+- **Don't inherit the model wording.** The Model README's install sentence ("If Windows asks to merge folders or replace files when updating, allow it.") must not carry over to scenes.
+- **Fix.** Give `scene-package.json` a consumer: include SHA-256 and size for every included file and the expected identity for each prerequisite. Then add a later "Verify installed scene package" command that checks the recipient's install against it. Without a consumer, the manifest is schema to maintain for no benefit.
+
+**F18. Session name collisions.** `elements/sessions/<name>.dmx` overwrites any recipient session with the same name. Generic names are common, and collaboration round trips make this likely. Warn on generic names.
+
+**F19. Path length.** The app is `longPathAware` (`app.manifest`), and PB has no check on destination length. The recipient's default install path is long, and as far as I know Source uses fixed MAX_PATH buffers. PB can therefore produce packages the recipient cannot use. Add a warning budget based on the default install path length.
+
+**F20. Stale session file.** SFM keeps a same-named `.autosave` beside the session `.dmx`. If the autosave is newer than the `.dmx`, warn that the package may miss unsaved work.
+
+## Complexity, premature abstractions, and safe deferrals
+
+**F21. Defer the out-of-process analysis worker (§5.4, Stage 3).**
+- **Cost.** It adds a second executable to the self-contained publish, an IPC protocol, Job Object handling, and its own tests.
+- **Threat.** Senders analyze their own files; responsiveness can be handled with a background task.
+- **Memory.** The library's binary codec advertises just-in-time attribute loading, which addresses memory in-process. Confirm the pinned 1.0.0 version has it; with lazy decoding, errors surface during traversal rather than at load.
+- **Bounds.** Keep the bounds. Add the worker only if Stage 0 fuzzing shows allocation that cannot be controlled.
+- **Limits.** The proposed limits (500,000 elements, 1 GiB) look low for large sessions with recorded animation, so derive them from the corpus.
+
+**F22. Keep third-party dependencies out of Core.** Put the scene analysis code and its NuGet packages in a separate assembly referenced by the WinForms project. Core currently has no third-party references, so this preserves that, keeps generator assets from flowing into model tests, and draws a clean line for the CC0 versus MIT notices.
+
+**F23. Make rights and prerequisite decisions coarser.** Keying decisions to individual dependency digests (§6.2) means any texture edit forces a re-review. For the first release, decide per provider root or group.
+
+**F24. Optional cuts.** These are product calls, but each removes regression surface:
+- the recents filter and stored kind hint (see F3);
+- New From Current for scenes;
+- release history and changelog for scenes, which also avoids extracting `ReleaseHistoryOperations` out of `PackageProject`;
+- named-event sound support, if F11 is confirmed.
+
+**F25. Archive verification is quadratic.** `ArchiveVerifier` calls `archive.Entries.SingleOrDefault(...)` with path normalization for every staged file. That is fine for model packages, but slow for scenes with thousands of files. Build the entry index once. The blueprint currently says to reuse this code "unchanged."
+
+## Stage ordering
+
+**F26. Move scene persistence after Stage 5.** Stage 5's internal milestone only needs an in-memory recipe. Freezing the scene payload in Stage 1, before evidence shows which decisions actually need to be persisted, invites churn in an unreleased schema. With F2 applied, Stage 1 shrinks to dispatch plus a skeleton.
+
+**F27. Split Stage 5.** Stage 5 currently combines mechanical extraction of the model build path (common validator, executor, finalizer) with the new scene planner. Apply the blueprint's own Stage 7 rule here too:
+- 5a: extraction only, under model parity tests;
+- 5b: scene planner.
+
+**F28. Let Stage 0 use throwaway tooling.** Stage 0 says "no product code," which could be read as no code at all. Explicitly allow throwaway evidence tooling outside the product tree, since the F8 inventory needs a scanner.
+
+## Qualification gates
+
+**F29. Make runtime gates objective.** "All tested shot content visible" (Stage 5) is subjective.
+- **Console scan.** Capture the SFM console (for example with `-condebug`, if SFM honors it) and scan for missing model, material and sound messages.
+- **Distinctive fixtures.** Use distinctive winner fixtures, as Q14 already does, for every precedence gate.
+- **Negative control.** Open the scene on the recipient before installing the package and confirm it fails with the expected missing-asset messages. This proves donor content isn't leaking into the test environment.
+
+## Priority
+
+Fix these before any implementation starts:
+- F1 and F2: Model and settings compatibility, both cheap to fix.
+- F7 and F8: whether real sessions can pass the gates at all.
+- F16: stock content.
+- F17: recipient-side verification.
+- F26 and F27: stage ordering.
+
+F10 through F12 can each remove a large block of planned work if Stage 0 answers them first.
+
+Do you want this put into a doc you can hand to Astra?

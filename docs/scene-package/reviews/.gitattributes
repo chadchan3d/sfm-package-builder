@@ -1,0 +1,3 @@
+# Preserve the original review records byte-for-byte, including CRLF endings.
+"Claude Audit.txt" -text
+Output.txt -text

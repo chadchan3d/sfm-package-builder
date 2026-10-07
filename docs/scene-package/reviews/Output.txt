@@ -1,0 +1,145 @@
+Now Appendix A and B.
+
+**Input gate: passed.** All four required files are present. Both source archives match the SHA-256 values in Revision 2's baseline table. The PB archive has 257 entries. Appendix A reconciles F1–F29 against the same audit text you supplied, and its finding topics line up one-to-one with that audit. The only discrepancies are cosmetic and appear under C14.
+
+## 1. Verdict
+
+**PASS WITH NON-BLOCKING CORRECTIONS**
+
+## 2. Blocking discrepancies
+
+None.
+
+I checked the source-dependent claims against the code. Each one holds:
+- `SettingsService.Load` returns defaults on a future schema, and `MainForm.cs:180` discards the load status.
+- `ReadRecentProjectCardMetadata` (at `:4363`) does a full synchronous `projectSerializer.Load`.
+- `ProjectMigrationService` rejects schema >4 before deserializing.
+- `ProjectSerializer` uses `UnmappedMemberHandling.Disallow`.
+- `ArchiveVerifier` runs a `SingleOrDefault` scan for each file.
+- `TreatWarningsAsErrors` is set, and BUILD.md uses `NuGetAudit=false`.
+- The Model "allow it" README sentence exists.
+- The recovered-tool line citations are correct.
+- The 54-byte header arithmetic holds.
+
+## 3. Non-blocking corrections
+
+These are listed roughly by priority. C1–C3 affect Stage 0 and should land before it starts.
+
+**C1. No rule for using existing evidence** (§9, Stage 0, §11; prompt item 8). Revision 2 never says whether existing evidence can satisfy a gate. Several parts of the text, read strictly, would force duplicate experiments:
+- The gates are written as experiments to perform ("Capture…", "Open…", "Test…").
+- Evidence must record "tool version/hash and exact inputs."
+- §11's fixture manifest requires fields that older qualification records won't have, such as ordered provider labels and expected dispositions.
+- "Never carry old results forward as reruns" is scoped to build/test commands, but reads as general.
+
+*Smallest fix:* add an admissibility clause to §9. Existing evidence satisfies or narrows a gate when it records the SFM build/profile, input digests, method, and observed result for the exact fact the gate requires. Missing provenance fields narrow its scope rather than voiding it. Each item cites the gate clause it closes. Facts about pinned packages (E6) still require the pinned artifact.
+
+**C2. Circular dependency between E6 and Stage 1** (F6/F22; §8.1, E6, Stage 0 "No production changes", Stage 1 dependencies). §8.1 says to inspect generator asset flow "in Scene, WinForms and test consumers." The Scene project doesn't exist until Stage 1, and Stage 1 depends on E6.
+
+*Fix:* E6 qualifies asset flow on a throwaway copy of the Core/Scene/WinForms/test reference graph outside the product tree. Stage 1 re-verifies in the real tree, which its test list already does.
+
+**C3. E1 needs an observation method that E7 provides** (F7/F29; E1, E7, Stage 0 objective). E1 runs first and must "record actual winner behavior." Reliable console capture, however, is an E7 deliverable.
+
+*Fix:* qualify the logging method alongside E1, or state that E1 relies on distinctive visual winner fixtures that don't depend on logs.
+
+**C4. The usefulness gate is measured at the wrong points** (F7/F8; §1.2, Stage 3 Done, Stage 6 Done). Stage 3 must show that "held-out normal sessions meet the accepted usefulness gate," but maps and audio don't arrive until Stage 6, and every real session has a map. Stage 6 Done has no measurement against the held-out corpus. As a result, the full first-public profile isn't re-measured until Stage 10, after the UI is built.
+
+*Fix:* Stage 3 measures only the model/material subgraph. Add the held-out false-block measurement against the full profile to Stage 6 Done. State that the owner fixes the acceptance threshold when Stage 0 exits.
+
+**C5. Severity of unknown VMT parameters is undefined** (F14, also F13; §7 table, §8.3, §8.1). §8.3 creates probable edges for unknown string parameters. §7 defines severity only for unknown *shaders*. That leaves three cases unspecified:
+- an unmatched unknown string parameter on a qualified shader;
+- the probable edge itself;
+- `UnsupportedMaterialSyntax`.
+
+A strict reading of the "unknown active loading behavior → Error" row brings back the community-VMT false blocks that F14 targeted.
+
+*Fix:* add explicit §7 rows for these cases, and add a VMT parameter/syntax census to the E2 corpus so the severity choice is evidence-based.
+
+**C6. Timing when E6 fails** (F21; §5.4). §5.4 says to "block shipping," but E6 runs in Stage 0 and gates Stage 1.
+
+*Fix:* if E6 finds in-process analysis insufficient, Stage 1 stops pending architecture approval. Blocking shipping is only the backstop.
+
+**C7. Provider/root identity matters for persistence before Stage 7** (F23/F26; §4.5, §6.2–6.3, Stages 2/5). Rights decisions are scoped to a "stable root identity" that must survive save, reopen, and remap. If Stage 2 or 5 keys decisions to raw absolute roots, Stage 7 forces a redesign.
+
+*Fix:* Stage 2 defines a logical identity that can be remapped, and Stage 5's in-memory decisions use it. Stage 7 only serializes.
+
+**C8. Settings changes must be additive only** (F1; §6.4, Q30). v1.0.4 silently ignores *new* members. However, any type or shape change to a member it already knows causes a `JsonException`, which leads to MalformedSettings, then defaults, then an overwrite on the next `TrackRecent`. That is the same wipe path F1 described.
+
+*Fix:* state that schema-1 changes add new optional members only, with no change to any member v1.0.4 knows, including nested `CreatorDefaults` and `RecentProjectEntry`.
+
+**C9. Recents projection vs. dispatch** (F3; §6.4). "Kind derived from successful dispatch" conflicts with "preferably a JSON-only projection." Because Model loading uses `Disallow`, a projection could label or version a file that Open would reject.
+
+*Fix:* the projection supplies display fields only. The kind label requires the same root version/kind validation that Open applies; otherwise the card shows "unavailable."
+
+**C10. Schema-number space** (F2; §6.1). "Dispatch on declared root version/type" is ambiguous.
+
+*Fix:* state that the presence of `packageKind` is the discriminator, and that Scene versions always exceed every version v1.0.4 accepts.
+
+**C11. ZIP index changes Model-visible behavior** (F25; §5.4, Q27). The index preserves exact-byte semantics, because comparisons are already `OrdinalIgnoreCase` and the missing/unexpected checks are hash-based. Today, though, a case-equivalent duplicate makes `SingleOrDefault` throw `InvalidOperationException`, which the catch filter doesn't handle. The new duplicate rejection turns that unhandled exception into a structured failure in Core.
+
+*Fix:* state this as an intended Model behavior change and add a Model test for it.
+
+**C12. README generalization isn't assigned to any stage** (F22/F27; §5.2–5.3, Stages 4A/4B/5). `ReadmeResolver.Resolve` takes a `PackageProject` and the concrete sealed `ReadmeGenerator`. For it to "alone produce the README entry" for Scene, the Model README path has to change. No stage owns that change, and Stage 5 lists no Core files.
+
+*Fix:* assign the seam to 4B under the README parity anchors.
+
+**C13. Smaller precision points.**
+- The §1.3 layout diagram shows `elements/sessions/<package-key>/` unconditionally; annotate it as conditional on E4.
+- Stage 1 omits E4 even though §9 says no parser implementation starts before E4; clarify that Stage 1 creates adapter interfaces only.
+- E2 should send any additional absolute-path-bearing slots it finds through E1's classification method.
+
+**C14. Attribution and editorial fixes.**
+- §3.2 names "LordAardvark." That name appears nowhere in the supplied archive: not in the methods document or `README_RECOVERY.md`, and the AssemblyInfo files carry only the "Microsoft" template. Source the name or mark it [HYP] before it reaches About/notices.
+- The baseline table filename is garbled (`v1_u8uf1Fz.0.4`), and the audit file is cited as `Claude Audit.txt` rather than the supplied filename.
+
+## 4. Reconciliation status
+
+DEFER dispositions are marked CLOSED when the hypothesis is correctly gated and doesn't drive behavior anywhere in the body.
+
+| F | Status |
+|---|---|
+| F1 | CLOSED |
+| F2 | CLOSED |
+| F3 | CLOSED |
+| F4 | CLOSED |
+| F5 | CLOSED |
+| F6 | CLOSED |
+| F7 | CLOSED |
+| F8 | CLOSED |
+| F9 | CLOSED |
+| F10 | CLOSED |
+| F11 | CLOSED |
+| F12 | CLOSED |
+| F13 | CLOSED |
+| F14 | PARTIAL: severity of unmatched unknown parameters and of probable edges is unspecified, so §7 can recreate the false blocks (C5). |
+| F15 | CLOSED |
+| F16 | CLOSED |
+| F17 | CLOSED |
+| F18 | CLOSED |
+| F19 | CLOSED |
+| F20 | CLOSED |
+| F21 | CLOSED |
+| F22 | CLOSED |
+| F23 | CLOSED |
+| F24 | CLOSED |
+| F25 | CLOSED |
+| F26 | CLOSED |
+| F27 | CLOSED |
+| F28 | CLOSED |
+| F29 | CLOSED |
+
+## 5. New material issues introduced by Revision 2
+
+All of these are non-blocking and detailed above:
+- **C2:** E6 now requires product-graph consumers that Stage 0 forbids creating.
+- **C3:** E1-first ordering combined with E7-owned logging leaves E1 without an observation method.
+- **C4:** maps moved to Stage 6 while the usefulness gate stayed at Stage 3.
+- **C6:** "block shipping" conflicts with E6 gating Stage 1.
+- **C7:** grouped rights (F23) combined with late persistence (F26) leaves identity semantics unowned until Stage 7.
+- **C12:** a Scene-owned README generator requires a Core README change that no stage owns.
+- **C14:** an unsourced author attribution.
+
+## 6. Freeze recommendation
+
+Yes. Revision 2 can be frozen as **the authoritative design and Stage 0 research plan**, pending owner approval, with C1–C14 recorded as a freeze errata rather than a Revision 3. C1–C3 should be applied before any Stage 0 work or evidence harvest begins. The rest can land before the stage each one touches. Model Package protections hold: flat schema 4, history, README wording, discovery and severity rules, output decisions, and Model UI are all preserved. The only Model-visible changes are the intended F1 settings guard and the C11 duplicate-entry handling.
+
+I can put this into a doc you can hand to Astra if that's useful.
