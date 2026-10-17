@@ -1,77 +1,156 @@
 # SFM Package Builder — Implementation Ledger
 
-Last updated: `2026-10-14T19:30Z`  
+Last updated: `2026-10-17` (public sanitized checkpoint: Scene Package evidence Steps A–D, final restoration and Step 5A reconciliation recorded)
+
 Maintainer: Claude Code
 
+This is the public, sanitized Ledger revision. A fuller private Ledger and all raw evidence are retained outside the repository and are referenced here only by opaque evidence ID.
+
 ## Repository / working state
-- Repository: `chadchan3d/sfm-package-builder`
-- Branch: `main` (tracking `origin/main`, ahead 0 / behind 0)
-- HEAD: `8503b0c3dc5e429424acb42f7b706809dd1de75f` (tree `8a0bf062416414f43100b10026ccc630d667505d`)
-- Working tree: no tracked modifications. The 12 governance files below are new paths, staged in the index as the M2 publication candidate. No commit exists.
-- Relevant uncommitted/untracked state: the 11 operating-contract files (status-normalized in M2) plus this Ledger. Ignored build output under `work/` (gitignored).
-- Dirty-state identity (SHA-256 of candidate files):
-  - `CLAUDE.md` `FDB5ECD60982D85A6174BC838BF6A3108EA970575AFEDD72DE520C7360F81145`
-  - `docs/governance/AUTHORITY_AND_ROLES.md` `41497AD7D7A65AD316D57918A170C47737EC13A1C64C8648A9363225E402A62E`
-  - `docs/governance/AUTHORITY_POINTER.md` `C199E6E62D503F4F6841879381F3A99459EB925AAA4150F7EE8407993BBC80C7`
-  - `docs/governance/LEDGER_CONTRACT.md` `FCC45569690DD8CA386ADD2B99D3F8F8D3FF113A1B9C30428EAAF8B3AC1E67AB`
-  - `docs/governance/LEDGER_TEMPLATE.md` `1FFF36CB10AAC76257222652DFA52C98D25EAA75ACFBF1C806E7EA49010DDF72`
-  - `docs/governance/OPERATING_BASELINE_MANIFEST.md` `65C7B029A181653268A1DF8C9EC1346D9FF1A41450099523C1C072F704A676AD`
-  - `docs/governance/SANITATION_AND_PUBLICATION_POLICY.md` `300A68DBF2E4F1E1BB6A1054F66BAFE744997116891736933A1043EE810EAC35`
-  - `docs/governance/TEST_AND_EVIDENCE_POLICY.md` `8953E3613E599E2FE38E2F8C3A70063A95A1E361F0779F453480BA6DED513CD8`
-  - `docs/governance/TRANSFER_ADMISSION_CHECKPOINT.md` `7A41724FCB340979695FFBC78C363C0677A233E6ED8BCF9A7EDF0AA8EBD4F4AA`
-  - `docs/governance/TRANSFER_BASELINE.md` `FB8A8819B63926D4B3494390C6C9F6F33FC58CF21679C9816810B0265A8D8C98`
-  - `docs/governance/WORKSPACE_POLICY.md` `7AF05F2092881A9102ABA69D7B189AA450F27701EBFD4F14576052AD6DE700C6`
-  - `docs/governance/IMPLEMENTATION_LEDGER.md`: this file. It cannot record its own hash; its identity and the exact staged-tree identity are bound privately under `EV-M2-GATE-001`.
+- Repository: `chadchan3d/sfm-package-builder`, branch `main`.
+- Parent of this checkpoint: `3953654b020ea2e5d5db579a083ccdc3b8f4fcb3` ("Adopt Claude Code operating baseline"), itself parented by the public baseline `8503b0c3dc5e429424acb42f7b706809dd1de75f`.
+- This revision is a documentation-only publication candidate. It changes this Ledger and `docs/scene-package/CURRENT_STATUS.md` only. Its exact reviewed identity is bound privately under `EV-PUB-CHK-001`.
 
 ## Governing authority
-- Accepted repository baseline: `main` @ `8503b0c3dc5e429424acb42f7b706809dd1de75f`; observed remote `main` = accepted commit (no delta)
-- Blueprint/errata/decision identities (verified from Git objects at accepted commit, `EV-M1-OPC-001`):
+- Accepted repository baseline: `main` @ `8503b0c3dc5e429424acb42f7b706809dd1de75f`.
+- Committed governance baseline: `3953654b020ea2e5d5db579a083ccdc3b8f4fcb3`.
+- Blueprint/errata/decision identities (Git objects, unchanged):
   - `docs/scene-package/SCENE_PACKAGE_INTEGRATION_BLUEPRINT_REVISION_2.md` blob `3eb85679510c4e5ec333bbceb6eedccc3fc7a21b`, SHA-256 `64DD9981B0C4A8B59D3B11DEB0C708FF7B59B8E933D28517B96214E50976015C`
   - `docs/scene-package/REVISION_2_FREEZE_ERRATA_AND_AUTHORITY_RECORD.md` blob `085499b2c3e88e95d82023732ee8b5859ea095b1`, SHA-256 `4C43CC7DDE185B52C506F0CE6BDC7060113D22BEA582DD2FA93294CDE3BF0099`
   - `docs/scene-package/decisions/MODERN_PRIOR_ART_ARCHITECTURE_DECISION.md` blob `d0e6704e25a64d219dc7363be38ffbc180a7ff8c`
-- Operating-contract revision: Revision 2, adopted by the Owner. Manifest `docs/governance/OPERATING_BASELINE_MANIFEST.md` SHA-256 `65C7B029A181653268A1DF8C9EC1346D9FF1A41450099523C1C072F704A676AD` (status-normalized in M2). The M1-era identity `5F9A0F02B6C9A2972CCE68B0F03CB001F4B806DA3855730A5835F20A6885F085` is the reviewed pre-normalization identity. The before/after identity record is `EV-M2-NORM-001`; the Owner approval record is `EV-M1-OPC-001`.
-- Approved design changes not yet incorporated: none
+- Precedence: Modern Prior-Art decision (evidence order/scope only) > Freeze Errata > Revision 2.
+- Operating contracts: Revision 2. Manifest SHA-256 `65C7B029A181653268A1DF8C9EC1346D9FF1A41450099523C1C072F704A676AD`.
+- Approved design changes not yet incorporated: none. The Designer scope dispositions below bound the first implementation slice. They do not amend the Blueprint, the errata or the authority pointer.
 
 ## Current milestone
-- Assignment: M2 — governance adoption normalization + publication candidate (no commit, no push)
-- Completion criterion: status-only normalization applied and recorded; manifest identities regenerated and verified; exact 12-file candidate staged by explicit allowlist; full fail-closed publication gate executed against the exact staged candidate; proposed commit metadata assessed
-- Status: `PASS`
+- **Assignment:** sanitized documentation checkpoint (Owner-authorized preparation; commit and push require separate approval).
+- **Completion criterion:** public status and Ledger accurately reflect verified state, with privacy review and the publication gate passed.
+- **Status:** preparation accepted (`EV-PUB-CHK-001`). Designer conditional approval of r3; the four required corrections are applied in this revision. Awaiting Owner authorization to commit and push.
+- **Previous milestone:** Step 5A bounded evidence reconciliation — `PASS` (`EV-SP-5A-01`). Designer dispositions are recorded below.
 
-### Milestone history (verified; retained)
-- M1 — Claude Code migration / transfer admission: `PASS` (Designer-accepted). Evidence: `EV-M1-GIT-001`, `EV-M1-OPC-001`, `EV-M1-PROV-001`, `EV-M1-OPS-001`, `EV-M1-TEST-001`, `EV-M1-TEST-002`, `EV-M1-LEDGER-001`.
+### Scene Package evidence history (verified; scoped)
+All runtime findings concern one genuine saved session (binary-5 / sfm_session-20) with one custom model/material fixture, on one SFM installation.
+
+- **Stage 0A** (existing-evidence harvest): accepted. No E1–E7 clause fully satisfied (`EV-SP-S0A-01`, `EV-SP-S0A-02`).
+- **Step A** (structural decoding): pinned KeyValues2 1.0.0 parsed the session.
+  - 58 elements, zero errors, bytes unchanged.
+  - Only relative resource values: one custom model occurrence, the active film's map name, and a `filenameBase` with an empty preset list.
+  - One-file scope only (`EV-SP-A-03`, `EV-SP-A-04`).
+- **Step B** (independent expected closure from the fixture's construction truth):
+  - five required custom assets (MDL, VVD, DX90 VTX, VMT, VTF);
+  - two policy-permitted companions (DX80 VTX, SW VTX);
+  - 12 structural associations corroborated by an independent decoder;
+  - map closure held; `filenameBase` unresolved (`EV-SP-B-01` to `EV-SP-B-03`).
+- **Step C** (SFMPackager black-box comparison):
+  - the archive held all five required assets byte-exact, plus the unchanged root DMX, the saved map and 30 map-related extras;
+  - accepted as a bounded observation with disclosed protocol deviations; closed without repeat (`EV-SP-C-03` to `EV-SP-C-05`).
+- **Step D, historical attempt:** D0 PASS, R0 PASS, R1 HOLD (`EV-SP-D-02`, `EV-SP-D-03`).
+  - R1 restored model/material, but the representative transform edit did not establish visible motion.
+  - The R1 adjudication replaced the edit prospectively with an interactive-inspection use test (R1-U), kept the R1 HOLD, and left editability unqualified (`EV-SP-D-ADJ-01`).
+  - Three later R1-U attempts stopped on tooling (`EV-SP-D-04` to `EV-SP-D-06`).
+- **Step D tooling:**
+  - The fresh no-reuse campaign governs (`EV-M4A-AUTH-001`).
+  - Observation method: an external retained-process-handle method (`EV-M4C-A1-AUTH-001`, `EV-M4C-R2-AUTH-001`).
+  - Recorder: a foreground per-row recorder with an independent assessor and hash-chained seals, qualified non-natively and adopted by the Owner (`EV-M4C-R2-QUAL-001`, `EV-M4C-R2-QUAL-003`, `EV-M4C-A2-AUTH-001`). Row-adapted candidates were preserved per row.
+- **Step D fresh campaign `b30e4987` — all eight rows accepted:**
+
+  | Row | Result | Evidence |
+  | --- | --- | --- |
+  | D0 donor baseline | PASS by Designer manual evidence-integrity adjudication; assessor HOLD retained (attempt-01 was a tooling HOLD) | `EV-SP-D-FRESH-D0-02` |
+  | R0 pre-install absence | PASS | `EV-SP-D-FRESH-R0-01` |
+  | R1-U receiver unit + interactive inspection | PASS | `EV-SP-D-FRESH-R1U-01` |
+  | M0 material pair withdrawn | PASS | `EV-SP-D-FRESH-M0-01` |
+  | M1 material pair restored | PASS | `EV-SP-D-FRESH-M1-01` |
+  | R2 alternate geometry | PASS | `EV-SP-D-FRESH-R2-01` |
+  | R3 post-warm absence | PASS | `EV-SP-D-FRESH-R3-01` |
+  | R4 recovery of the receiver unit | PASS | `EV-SP-D-FRESH-R4-01` |
+
+  - **Allowable conclusion:** *scoped receiver claim established for interactive inspection and the measured model/material controls.* It covers this one saved scene, with its declared map/support environment, on the same installation.
+  - It is not the transform-edit witness. The historical R1 HOLD stands. Editability, persisted edits, cross-installation portability, precedence over conflicting copies, map closure and other runtime classes are not established.
+- **Final restoration:** Owner-run and independently verified PASS (`EV-SP-D-FRESH-CLOSEOUT-01`).
+  - Donor baseline restored with exact identities.
+  - Receiver files and experiment-created folders are absent.
+  - Protected autosaves, profile and configuration are unchanged.
+  - Shared Steam bookkeeping is documented, not restored.
+  - Normal SFM use is permitted. Recovery copies and evidence are retained privately.
+- **Step 5A reconciliation** (`EV-SP-5A-01`; existing evidence only):
+  - **R1 edit HOLD — deferred.** For the narrow failed claim there is a plausible but unconfirmed structural hypothesis (a play-mode channel with a single logged key); it is not an established cause. Editability is not claimed. The minimal later observation would be a paired donor/recipient normal-route edit.
+  - **Map closure — deferred to Stage 6.** The proposed first slice treats the map as an exact-identity recipient prerequisite. This does not waive Blueprint Stage 5's inspected-map or dependency-free-fixture requirement.
+  - **`filenameBase` — resolved** for the first slice: no derived resource is required. Unsupported when the preset list is non-empty.
+  - **Step C's 30 extras — resolved** as one map-derived support class.
+  - **Q05 — resolved** at one-scene, one-installation, DX9-profile scope.
+  - **E1/E4/E5 — first-slice scope limits only.** These are not waivers. E1 viability, narrow E4 qualification and the applicable E5 stage requirements remain outstanding.
+  - **E2 corpus and E6 parser adoption — blocking.** These are the next evidence task (proposed Step 5B).
+  - No governing-invariant contradiction.
+- **Designer dispositions** (recorded at this checkpoint; scoped dispositions, not replacement governing authority; `AUTHORITY_POINTER.md` unchanged):
+  1. **Relative paths only.** Relative-path-only support is acceptable for the first internal slice; absolute or topology-sensitive candidates are reported as unsupported. **E1 viability is not fully qualified.** This is not a public portability promise.
+  2. **Editability timing.** Transform editability is not a prerequisite for the limited internal Stage 5 milestone. Under the current product definition, editability must be qualified before public release. The historical R1 HOLD is preserved.
+  3. **Push gate.** Unpushed predecessor commit `3953654b…` must pass its own push gate before publication.
+
+### Governance and tooling milestone history (verified; retained)
+- M1 — Claude Code migration / transfer admission: `PASS` (`EV-M1-GIT-001`, `EV-M1-OPC-001`, `EV-M1-PROV-001`, `EV-M1-OPS-001`, `EV-M1-TEST-001`, `EV-M1-TEST-002`, `EV-M1-LEDGER-001`).
+- M2 — governance status normalization and publication candidate: `PASS`. The commit-content gate passed (`EV-M2-NORM-001`, `EV-M2-GATE-001`).
+- M3 — local governance commit `3953654b…` with post-commit checkpoint: `PASS` (`EV-M3-COMMIT-001`, `EV-M3-LEDGER-001`). Not pushed; its push gate has not been executed. M3A: Astra synchronization audit, READY WITH NON-BLOCKING CONDITIONS.
+- M4 — Scene Package evidence-state reconciliation: `PASS` (`EV-M4-SP-RECON-001`, `EV-M4-SP-INDEX`).
+- M4A — Owner route decision: the fresh no-reuse Step D campaign governs. Historical D0/R0 are cited only for what they established (`EV-M4A-AUTH-001`).
+- M4B — Designer selection of the external retained-process-handle observation method. Method selection was not campaign readiness.
+- M4C-R1 — read-only tooling reconciliation (`EV-M4C-R1-REPORT-001`). It confirmed the original continuous observer failed (heartbeat publication denied); the root cause was not established (`EV-M4C-ASTRA-001`).
+- M4C-A1 — Owner adoption of the tooling-amendment design approach, after Astra review READY WITH CONDITIONS (`EV-M4C-A1-AUTH-001`). Design approval only.
+- M4C-R2 — foreground D0 recorder, qualified non-natively: 63/63 cases at declared scope (`EV-M4C-R2-AUTH-001`, `EV-M4C-R2-QUAL-001`).
+  - The v1 typed-console supplement was a **HOLD** (input defect; `EV-M4C-R2-QUAL-002`).
+  - A bounded correction produced v2, `PASS` at declared scope (`EV-M4C-R2-QUAL-003`).
+- M4C-A2 — Owner adoption of v2 for D0 after Designer review (PASS with documented limitations) (`EV-M4C-A2-AUTH-001`). v1 was never adopted.
+- Fresh campaign `b30e4987`: rows D0 through R4 and the closeout, as tabled above. Each row ran on a preserved, row-adapted candidate (v3–v11; `EV-M4C-R2-CANDIDATE-003` to `-011`).
+
+### Retained HOLD / invalid records
+- Step D first D0: INVALID (wrong subject opened) (`EV-SP-D-01`).
+- Step D historical R1: HOLD (transform motion unestablished) (`EV-SP-D-02`). Preserved; never relabelled PASS.
+- Step D R1-U tooling HOLDs (`EV-SP-D-04` to `EV-SP-D-06`). The aborted-attempt recovery was verified (`EV-SP-D-07`).
+- Original fresh-campaign continuous-observer tooling HOLD (`EV-SP-D-08` to `EV-SP-D-10`). Its root cause was not established; it was superseded by the adopted foreground method.
+- M4C-R2 v1 typed-console HOLD (`EV-M4C-R2-QUAL-002`).
+- Fresh D0 attempt-01 tooling HOLD (`EV-SP-D-FRESH-D0-01`). The D0 automatic-assessor HOLD is retained beside the Designer's PASS adjudication.
+- Step A and Step C acquisition/preflight HOLDs, superseded by the accepted attempts (`EV-SP-A-01`, `EV-SP-A-02`, `EV-SP-C-01`, `EV-SP-C-02`).
+
+**Partial / open**
+- Step B map closure: deferred to Stage 6 (see Step 5A).
+- Provider equivalence, general precedence, cross-installation portability and editability: not established.
+
+**Deferred / not run**
+- Frozen E1 campaign: deferred, not passed. P4 paused (preparation HOLD, zero baseline rows). P2 parked. Universal P6 deferred.
+- Not established for a supported profile: E2 corpus, E3, E4 precedence, E5 baseline, E6 safety/resources, E7.
+
+**Gate mapping**
+- Modern route steps 1–4: satisfied at the scoped one-scene model/material level.
+- Step 5: reconciliation complete. E2/E6 are the next evidence task (Step 5B). E1 viability, narrow E4 qualification and the applicable E5 stage requirements remain outstanding, and Blueprint Stage 5's map/fixture requirement is unchanged.
+- No production code is authorized. The Blueprint §9 parser preconditions remain in force.
+
+**Contradictions:** none against a governing invariant. No DESIGN REVIEW REQUIRED.
 
 ## Implemented state
-No product source or test changes in M1 or M2. M2 changed status-label wording only in 9 operating-contract files (each `Status:` line set to `OPERATING BASELINE REVISION 2`; the stale word "candidate" removed from one manifest sentence). It also regenerated 8 affected manifest SHA-256 rows. Authority hierarchy, roles, evidence, sanitation/publication, STOP/HOLD, workspace, and Blueprint-precedence rules are unchanged. Model Package source/tests at HEAD remain identical to the v1.0.4 publication commit `e3caabce45192419e97dd9c6b9ece68fad2cf246`.
+Scene Package product work has not begun. The existing Model Package source and tests remain identical to the v1.0.4 publication commit `e3caabce45192419e97dd9c6b9ece68fad2cf246`. Step D tooling was private experiment tooling outside the repository. Scene Package production implementation has not begun.
 
 ## Verification / evidence
-- Toolchain/runtime identity: Git 2.41.0 (system `core.autocrlf=true`); Python 3.10.6 (manifest and scan tooling). The M1 .NET toolchain is unchanged and was not re-run.
-- Tests/inspections actually run (M2):
-  - Starting-state check: remote `main` = HEAD = accepted commit; no tracked changes; empty index; governance bytes = M1 identities (`EV-M2-NORM-001`)
-  - Status-only diff review and manifest regeneration; all 10 manifest rows re-verified byte-for-byte; no CR bytes (`EV-M2-NORM-001`)
-  - Explicit 12-path staging and full publication gate on the exact staged blobs (`EV-M2-GATE-001`)
-- Outcomes: normalization 10 changed lines plus 8 hash rows; manifest 10/10 match; publication gate PASS on content (`EV-M2-GATE-001`)
-- Product build/test: not re-run (governance-only change). The qualified baseline remains M1 `EV-M1-TEST-002`: 544 passed / 0 failed / 2 fixture-gated skips at HEAD `8503b0c3dc5e429424acb42f7b706809dd1de75f`.
-- Evidence IDs: `EV-M2-NORM-001`, `EV-M2-GATE-001` (durable private retention); M1 IDs above
-- Working-state identity: HEAD `8503b0c3dc5e429424acb42f7b706809dd1de75f` + candidate file identities listed above; staged-tree identity bound in `EV-M2-GATE-001`
+- Model Package qualification (unchanged): 544 passed / 0 failed / 2 fixture-gated skips at source identical to the current HEAD (`EV-M1-TEST-002`). Not re-run; no source has changed since.
+- Toolchain recorded at M2: Git 2.41.0 (`core.autocrlf=true`); Python 3.10.6 for manifest and scan tooling.
+- Scene Package evidence: as listed above. Runtime rows were native SFM runs with Owner/operator observation, recorder receipts and an independent assessor. Step 5A was static reading of retained evidence.
+- Governance evidence: `EV-M1-*`, `EV-M2-NORM-001`, `EV-M2-GATE-001`, `EV-M3-COMMIT-001`; Ledger revision identities retained privately.
 
 ## Failures / uncertainties / untested behavior
-- Skipped tests carried from M1: MDL golden-oracle corpus (private aid, not promoted) and installed-SFM acceptance fixture (env var unset). `dotnet publish` was not run.
-- WinForms.Tests require test binaries inside the repository tree (`EV-M1-TEST-001`). Build artifacts stay under ignored `work/`.
-- Commit identity: no Git author/committer identity is configured for this checkout, so a commit cannot be created as-is. A per-commit public project identity method is identified privately (`EV-M2-GATE-001`) and needs Owner confirmation. No configuration was changed.
+- Model Package: MDL golden-oracle and installed-SFM acceptance fixtures are skipped, and `dotnet publish` was not run. WinForms.Tests require build artifacts inside the repository tree (`EV-M1-TEST-001`).
+- Scene Package: all runtime claims are scoped to one scene on one installation. The historical R1 HOLD and the Step D tooling HOLDs remain historical records.
+- The committed M2 Ledger revision's `Last updated` value is later than its actual staging time. This is a non-substantive timestamp inaccuracy.
 
 ## Transfer admission
-- Accepted baseline verified: yes (`EV-M1-GIT-001`; re-verified at M2 start)
-- Operating contracts approved/pinned: yes. Revision 2, status-normalized; identities verified (`EV-M2-NORM-001`). Not yet committed.
-- Model Package baseline build/test capability verified: yes (`EV-M1-TEST-002`; gaps as above)
-- Outstanding operational ownership/HOLDs: `EV-M1-OPS-001`. One prior Scene Package Step D runtime campaign remains under a tooling HOLD with Owner-held authority. It was not touched in M2.
-- Transfer admission: `PASS` (M1)
+- Accepted baseline verified: yes.
+- Operating contracts approved/pinned: yes (Revision 2, committed in `3953654b…`).
+- Model Package baseline build/test capability verified: yes (`EV-M1-TEST-002`; gaps as above).
+- Outstanding operational ownership/HOLDs: none active. Step D campaign `b30e4987` is closed and restored. Retained private recovery copies remain under Owner authority (`EV-SP-D-FRESH-CLOSEOUT-01`).
+- Transfer admission: `PASS` (M1).
 
 ## Sanitation / publication
-- Private-only material present: none in the candidate. Private receipts are held outside the repository and referenced by opaque evidence ID only.
-- Exact publication candidate identity: staged 12-file index tree, bound privately in `EV-M2-GATE-001`
-- Sanitized for publication: staged content passed the fail-closed gate (`EV-M2-GATE-001`). Proposed commit metadata needs Owner confirmation of the public identity before any commit.
-- Commit authorized: no
-- Push/publication authorized: no
+- Private-only material: none in this candidate. Private receipts are referenced by opaque evidence ID only.
+- Candidate identity and gate results: bound privately under `EV-PUB-CHK-001`.
+- Commit authorized: no. Push/publication authorized: no.
 
 ## Next bounded action
-Owner decision on the staged M2 candidate: confirm the public commit identity, then explicitly authorize (or decline) a single local commit of exactly the staged tree recorded in `EV-M2-GATE-001`.
+Designer/Owner review of this sanitized publication candidate, followed by explicit authorization (or not) to commit and push. After that, Step 5B (E2/E6 corpus/parser qualification) resumes only on explicit authorization. Blueprint Stage 4A remains a possible separate task, not authorized.
